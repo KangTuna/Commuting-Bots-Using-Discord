@@ -37,7 +37,8 @@ class PersonData():
                 'total_hour': [self.total_hour],
                 'total_min': [self.total_min]}
         
-        timetable = pd.DataFrame(data,index = [time.date()])
+        # timetable = pd.DataFrame(data,index = [time.date()])
+        timetable = pd.DataFrame(data)
 
         # 파일 저장 경로 확인
         if not os.path.exists(f'./undergraduate research student'):
@@ -47,6 +48,8 @@ class PersonData():
         try:
             pre = pd.read_csv(f'./undergraduate research student/{self.name}_working_table.csv',index_col=0)
             table = pd.concat([pre,timetable])
+            table.reset_index(drop=True,inplace=True)
+            table = table.astype('int')
             table.to_csv(f'./undergraduate research student/{self.name}_working_table.csv')
         except:
             timetable.to_csv(f'./undergraduate research student/{self.name}_working_table.csv')

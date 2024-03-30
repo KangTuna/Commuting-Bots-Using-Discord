@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord import Interaction
 from datetime import datetime
 from Persondata import PersonData
+from ButtonMenu import ButtonFunction
 
 import pandas as pd
 
@@ -80,8 +81,8 @@ async def init(ctx: commands.context.Context):
     await ctx.send(ctx.author.name)
 
 @client.command()
-async def check(ctx: commands.context.Context):
-    await ctx.send(ctx.author.display_name)
+async def check(ctx: commands.context.Context, message):
+    await ctx.send(f'{ctx.author.display_name} {message}')
 
 @client.command()
 async def 주간(ctx: commands.context.Context):
@@ -110,5 +111,41 @@ async def 월간(ctx: commands.context.Context):
         await ctx.send(f'이번달 총 근무 시간은 {monthly_hour}시 {monthly_min}분 입니다.')
     except:
         await ctx.send('이번달에 근무하신 기록이 없습니다.')
+
+@client.command()
+async def 수정(ctx: commands.context.Context, text: str):
+    hour = int(text[:2])
+    note = text[2:].lstrip()
+    print(note)
+    time = datetime.now()
+    name = ctx.author.display_name
+    df = pd.read_csv(f'./undergraduate research student/{name}_working_table.csv',index_col=0)
+    data = {'year': [time.year], # int
+            'month': [time.month], # int
+            'day': [time.day], # int
+            'week': [time.isocalendar()[1]], # int
+            'start_hour': [0], # int
+            'start_min': [0], # int
+            'end_hour': [0], # int
+            'end_min': [0], # int
+            'total_hour': [hour], # int
+            'total_min': [0],
+            'note' : [note]} # int
+    ddf = pd.DataFrame(data)
+    df = pd.concat([df,ddf])
+    df.to_csv(f'./undergraduate research student/{name}_working_table.csv')
+    if hour >= 0:
+        await ctx.send(f'근무시간 {hour}시간 추가 했습니다.')
+    else:
+        await ctx.send(f'근무시간 {-hour}시간 감소 했습니다.')
+    
+    # 사용한 데이터프레임 삭제
+    del df
+    del ddf
+    
+
+@client.command()
+async def button1(ctx):
+    await ctx.send(view=ButtonFunction())
 
 client.run(TOKEN)

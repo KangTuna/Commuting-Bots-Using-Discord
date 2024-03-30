@@ -35,5 +35,21 @@ import random as ran
 # df = df[df['week'] == week]
 # print(df)
 
-t = datetime.now().isocalendar()[1]
-print(t)
+# t = datetime.now().isocalendar()[1]
+# print(t)
+time = datetime.now()
+df = pd.read_csv(f'./undergraduate research student/강우협_working_table.csv',index_col=0)
+data = {'year': [time.year],
+        'month': [time.month],
+        'day': [time.day],
+        'week': [time.isocalendar()[1]],
+        'start_hour': [0],
+        'start_min': [0],
+        'end_hour': [0],
+        'end_min': [0],
+        'total_hour': [0],
+        'total_min': [0]}
+add_df = pd.DataFrame(data)
+df = pd.concat([df,add_df])
+df.reset_index(drop=True,inplace=True)
+print(df)
