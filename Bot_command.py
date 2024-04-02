@@ -6,6 +6,7 @@ from Persondata import PersonData
 from ButtonMenu import ButtonFunction
 
 import pandas as pd
+import asyncio
 
 # 실제사용할땐 TestBot_TOKEN.txt -> RealBot_TOKEN.txt로 바꿔야됨
 with open('./TOKEN/TestBot_TOKEN.txt','r') as f:
@@ -15,12 +16,28 @@ client = commands.Bot(command_prefix="!", intents= discord.Intents.all())
 
 chul = dict()
 
+async def my_task(bot: commands.Bot):
+    while True:
+        now = datetime.now()
+        if now.hour >= 21 and chul:
+            # 원하는 일을 합니다.
+            for v in chul.values():
+                if not v.get_night_shift():
+                    await test_channel.send(f'{v.get_author().mention} 퇴근 확인하세요.')
+            # 채널 객체 받아오기
+                    
+        # 테스트용
+        test_channel = bot.get_channel(1215472922894925849) # 채널ID는 int형으로 입력합니다.             
+        # Channel id : 출퇴근부 경고 위치
+        # test_channel = bot.get_channel(1224606472177057813) # 채널ID는 int형으로 입력합니다. 
+        await asyncio.sleep(60)
+
 @client.event
 async def on_ready():
     await client.tree.sync()
     await client.change_presence(activity = discord.activity.Game(name='Working'), # 플레이중인 게임 이름
                                  status = discord.Status.online) # 봇의 상태
-    # print(f'{client.user.name} is loggen in.')
+    client.loop.create_task(my_task(client))
 
 @client.tree.command(name="ping",description='it will show the ping!')
 async def ping(interaction : Interaction):
@@ -32,7 +49,7 @@ async def 출근(ctx: commands.context.Context):
     now = datetime.now()
     name = ctx.author.display_name
     if name not in chul:
-        chul[name] = PersonData(name)
+        chul[name] = PersonData(ctx.author)
         chul[name].start(now)
         await ctx.send(f'현재시간 : {now.hour}시 {now.minute}분 {name} 출근')
     else:
@@ -143,9 +160,17 @@ async def 수정(ctx: commands.context.Context, text: str):
     del df
     del ddf
     
-
 @client.command()
 async def button1(ctx):
     await ctx.send(view=ButtonFunction())
+
+@client.command(name= '야근')
+async def night_shift(ctx: commands.context.Context):
+    name = ctx.author.display_name
+    if name in chul:
+        chul[name].night_shift_mode()
+        await ctx.send('야근 모드로 전환했습니다.')
+    else:
+        await ctx.send('아직 출근하지 않았습니다.')
 
 client.run(TOKEN)

@@ -4,20 +4,22 @@ from datetime import datetime
 import os
 
 class PersonData():
-    def __init__(self,name):
-        self.name = name
+    def __init__(self,author) -> None:
+        self.author = author
+        self.name = author.display_name
         data = {'start_time': [],
                 'end_time': [],
                 'total_time': []}
         self.timetable = pd.DataFrame(data)
         self.class_time = 0
         self.isclassing = False
+        self.isNightShift = False
         
-    def start(self,time: datetime.now):
+    def start(self,time: datetime.now) -> None:
         self.start_hour = time.hour
         self.start_min = time.minute
 
-    def end(self,time: datetime.now):
+    def end(self,time: datetime.now) -> None:
         self.end_hour = time.hour
         self.end_min = time.minute
 
@@ -54,22 +56,22 @@ class PersonData():
         except:
             timetable.to_csv(f'./undergraduate research student/{self.name}_working_table.csv')
 
-    def class_start(self,time: datetime.now):
+    def class_start(self,time: datetime.now) -> None:
         self.start_class_hour = time.hour
         self.start_class_min = time.minute
         self.isclassing = True
 
-    def class_end(self,time: datetime.now):
+    def class_end(self,time: datetime.now) -> None:
         self.end_class_hour = time.hour
         self.end_class_min = time.minute
 
         self.class_time += ((self.end_class_hour * 60) + self.end_class_min) - ((self.start_class_hour * 60) + self.start_class_min)
         self.isclassing = False
     
-    def isClassing(self):
+    def isClassing(self) -> bool:
         return self.isclassing
     
-    def get_total(self):
+    def get_total(self) -> tuple:
         return self.total_hour,self.total_min
     
     def get_weekly(self,name: str, time: datetime.now):
@@ -78,6 +80,14 @@ class PersonData():
     def get_monthly(self,name: str, time: datetime.now):
         pass
 
+    def get_author(self): # 디스코드 사용자 객체 리턴
+        return self.author
+    
+    def night_shift_mode(self) -> None:
+        self.isNightShift = True
+    
+    def get_night_shift(self) -> bool:
+        return self.isNightShift
         
 if __name__ == '__main__':
     a = PersonData('woo')
