@@ -130,10 +130,10 @@ async def 월간(ctx: commands.context.Context):
         await ctx.send('이번달에 근무하신 기록이 없습니다.')
 
 @client.command()
-async def 수정(ctx: commands.context.Context, text: str):
-    hour = int(text[:2])
-    note = text[2:].lstrip()
-    print(note)
+async def 수정(ctx: commands.context.Context, *, message: str):
+    hour = message.split()[0]
+    note = message[len(hour)+1:]
+    hour = int(hour)
     time = datetime.now()
     name = ctx.author.display_name
     df = pd.read_csv(f'./undergraduate research student/{name}_working_table.csv',index_col=0)
@@ -150,7 +150,7 @@ async def 수정(ctx: commands.context.Context, text: str):
             'note' : [note]} # int
     ddf = pd.DataFrame(data)
     df = pd.concat([df,ddf])
-    df.to_csv(f'./undergraduate research student/{name}_working_table.csv')
+    df.to_csv(f'./undergraduate research student/{name}_working_table.csv',encoding='utf-8-sig')
     if hour >= 0:
         await ctx.send(f'근무시간 {hour}시간 추가 했습니다.')
     else:

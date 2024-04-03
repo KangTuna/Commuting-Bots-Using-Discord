@@ -52,9 +52,9 @@ class PersonData():
             table = pd.concat([pre,timetable])
             table.reset_index(drop=True,inplace=True)
             table = table.astype('int')
-            table.to_csv(f'./undergraduate research student/{self.name}_working_table.csv')
+            table.to_csv(f'./undergraduate research student/{self.name}_working_table.csv', encoding='utf-8-sig')
         except:
-            timetable.to_csv(f'./undergraduate research student/{self.name}_working_table.csv')
+            timetable.to_csv(f'./undergraduate research student/{self.name}_working_table.csv', encoding='utf-8-sig')
 
     def class_start(self,time: datetime.now) -> None:
         self.start_class_hour = time.hour
