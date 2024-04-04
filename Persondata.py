@@ -51,7 +51,16 @@ class PersonData():
             pre = pd.read_csv(f'./undergraduate research student/{self.name}_working_table.csv',index_col=0)
             table = pd.concat([pre,timetable])
             table.reset_index(drop=True,inplace=True)
-            table = table.astype('int')
+            table = table.astype({'year': 'int',
+                                  'month': 'int',
+                                  'day': 'int',
+                                  'week': 'int',
+                                  'start_hour': 'int',
+                                  'start_min': 'int',
+                                  'end_hour': 'int',
+                                  'end_min': 'int',
+                                  'total_hour': 'int',
+                                  'total_min': 'int'})
             table.to_csv(f'./undergraduate research student/{self.name}_working_table.csv', encoding='utf-8-sig')
         except:
             timetable.to_csv(f'./undergraduate research student/{self.name}_working_table.csv', encoding='utf-8-sig')
