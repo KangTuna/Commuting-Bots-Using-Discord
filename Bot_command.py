@@ -150,6 +150,7 @@ async def 수정(ctx: commands.context.Context, *, message: str):
             'note' : [note]} # int
     ddf = pd.DataFrame(data)
     df = pd.concat([df,ddf])
+    df.reset_index(drop=True, inplace=True)
     df.to_csv(f'./undergraduate research student/{name}_working_table.csv',encoding='utf-8-sig')
     if hour >= 0:
         await ctx.send(f'근무시간 {hour}시간 추가 했습니다.')
