@@ -162,6 +162,9 @@ async def night_shift(ctx: commands.context.Context):
     else:
         await ctx.send('아직 출근하지 않았습니다.')
 
+##############################################################################
+######################## 관리자용 명령어 ######################################
+
 @client.command(name= '확인')
 async def check_working_time(ctx: commands.context.Context,*,message: str) -> None:
     name = message.split()[0]
@@ -171,7 +174,7 @@ async def check_working_time(ctx: commands.context.Context,*,message: str) -> No
     except:
         when = 0 # 안정했으면 이번주(월)
 
-    if custom_functions.role_check(ctx):
+    if custom_functions.role_check(ctx,'관리자'):
         if MW == '주간':
             week_hour,week_min = custom_functions.weekly(name,when)
             await ctx.send(f'{name}의 총 근무 시간은 {week_hour}시 {week_min}분 입니다.')

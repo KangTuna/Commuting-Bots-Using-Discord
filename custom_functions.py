@@ -4,11 +4,11 @@ import pandas as pd
 
 from datetime import datetime
 
-def role_check(ctx: commands.context.Context):
+def role_check(ctx: commands.context.Context, role: str):
     roles_name = []
     for i in range(len(ctx.author.roles)):
         roles_name.append(ctx.author.roles[i].name)
-    if '관리자' in roles_name:
+    if role in roles_name:
         # TODO: 주간 월간 조정하는 함수 추가
         return True
     else:
