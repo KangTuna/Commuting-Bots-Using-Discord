@@ -2,8 +2,10 @@ import discord
 from discord.ext import commands
 from discord import Interaction
 from datetime import datetime
+
 from Persondata import PersonData
 from ButtonMenu import ButtonFunction
+import custom_functions
 
 import pandas as pd
 import asyncio
@@ -23,13 +25,10 @@ async def my_task(bot: commands.Bot):
             # 원하는 일을 합니다.
             for v in chul.values():
                 if not v.get_night_shift():
-                    await test_channel.send(f'{v.get_author().mention} 퇴근 확인하세요.')
-            # 채널 객체 받아오기
-                    
-        # 테스트용
-        test_channel = bot.get_channel(1215472922894925849) # 채널ID는 int형으로 입력합니다.             
+                    await test_channel.send(f'{v.get_author().mention} 퇴근 확인하세요.')                    
+        
         # Channel id : 출퇴근부 경고 위치
-        # test_channel = bot.get_channel(1224606472177057813) # 채널ID는 int형으로 입력합니다. 
+        test_channel = bot.get_channel(1224606472177057813) # 채널ID는 int형으로 입력합니다. 
         await asyncio.sleep(60)
 
 @client.event
@@ -37,12 +36,25 @@ async def on_ready():
     await client.tree.sync()
     await client.change_presence(activity = discord.activity.Game(name='Working'), # 플레이중인 게임 이름
                                  status = discord.Status.online) # 봇의 상태
+    # 매분 현재시간 체크해서 9시 이후 퇴근 안눌렀으면 경고 보내기
     client.loop.create_task(my_task(client))
 
+######################## 테스트용 명령어 ######################################
 @client.tree.command(name="ping",description='it will show the ping!')
 async def ping(interaction : Interaction):
     bot_latency = round(client.latency*1000)
     await interaction.response.send_message(f'Pong!...{bot_latency}ms')
+
+@client.command()
+async def init(ctx: commands.context.Context):
+    await ctx.send(ctx.author.name)
+
+@client.command()
+async def check(ctx: commands.context.Context):
+    pass
+    
+##############################################################################
+####################### 실제 사용하는 명령어 ###################################
 
 @client.command()
 async def 출근(ctx: commands.context.Context):
@@ -94,40 +106,16 @@ async def 수업끝(ctx: commands.context.Context):
         await ctx.send('아직 출근하지 않았습니다.')
 
 @client.command()
-async def init(ctx: commands.context.Context):
-    await ctx.send(ctx.author.name)
-
-@client.command()
-async def check(ctx: commands.context.Context, message):
-    await ctx.send(f'{ctx.author.display_name} {message}')
-
-@client.command()
 async def 주간(ctx: commands.context.Context):
-    now = datetime.now()
     name = ctx.author.display_name
-    week = now.isocalendar()[1]
-    try:
-        df = pd.read_csv(f'./undergraduate research student/{name}_working_table.csv',index_col=0)
-        df = df[df['week'] == week]
-        week_hour = df['total_hour'].sum() + (df['total_min'].sum() // 60)
-        week_min = df['total_min'].sum() % 60
-        await ctx.send(f'이번주 총 근무 시간은 {week_hour}시 {week_min}분 입니다.')
-    except:
-        await ctx.send('이번주에 근무하신 기록이 없습니다.')
+    week_hour,week_min = custom_functions.weekly(name)
+    await ctx.send(f'이번주 총 근무 시간은 {week_hour}시 {week_min}분 입니다.')
 
 @client.command()
 async def 월간(ctx: commands.context.Context):
-    now = datetime.now()
     name = ctx.author.display_name
-    month = now.month
-    try:
-        df = pd.read_csv(f'./undergraduate research student/{name}_working_table.csv',index_col=0)
-        df = df[df['month'] == month]
-        monthly_hour = df['total_hour'].sum() + (df['total_min'].sum() // 60)
-        monthly_min = df['total_min'].sum() % 60
-        await ctx.send(f'이번달 총 근무 시간은 {monthly_hour}시 {monthly_min}분 입니다.')
-    except:
-        await ctx.send('이번달에 근무하신 기록이 없습니다.')
+    monthly_hour, monthly_min = custom_functions.monthly(name)
+    await ctx.send(f'이번달 총 근무 시간은 {monthly_hour}시 {monthly_min}분 입니다.')
 
 @client.command()
 async def 수정(ctx: commands.context.Context, *, message: str):
@@ -173,5 +161,24 @@ async def night_shift(ctx: commands.context.Context):
         await ctx.send('야근 모드로 전환했습니다.')
     else:
         await ctx.send('아직 출근하지 않았습니다.')
+
+@client.command(name= '확인')
+async def check_working_time(ctx: commands.context.Context,*,message: str) -> None:
+    name = message.split()[0]
+    MW = message.split()[1]
+    try:
+        when = int(message.split()[2]) # 주(월)간 위치 정해주면 가져오고
+    except:
+        when = 0 # 안정했으면 이번주(월)
+
+    if custom_functions.role_check(ctx):
+        if MW == '주간':
+            week_hour,week_min = custom_functions.weekly(name,when)
+            await ctx.send(f'{name}의 총 근무 시간은 {week_hour}시 {week_min}분 입니다.')
+        elif MW == '월간':
+            monthly_hour, monthly_min = custom_functions.monthly(name,when)
+            await ctx.send(f'{name}의 총 근무 시간은 {monthly_hour}시 {monthly_min}분 입니다.')
+        
+##############################################################################
 
 client.run(TOKEN)
