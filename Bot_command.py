@@ -6,6 +6,7 @@ from datetime import datetime
 from Persondata import PersonData
 from ButtonMenu import ButtonFunction
 import custom_functions
+import Gmail 
 
 import pandas as pd
 import asyncio
@@ -18,6 +19,7 @@ client = commands.Bot(command_prefix="!", intents= discord.Intents.all())
 
 chul = dict()
 
+# 사용자가 퇴근을 안했을 때 경고를 보내기 위한 함수
 async def my_task(bot: commands.Bot):
     while True:
         now = datetime.now()
@@ -31,6 +33,7 @@ async def my_task(bot: commands.Bot):
         test_channel = bot.get_channel(1224606472177057813) # 채널ID는 int형으로 입력합니다. 
         await asyncio.sleep(60)
 
+# 봇이 켜지면 바로 발생하는 함수
 @client.event
 async def on_ready():
     await client.tree.sync()
@@ -45,7 +48,7 @@ async def ping(interaction : Interaction):
     bot_latency = round(client.latency*1000)
     await interaction.response.send_message(f'Pong!...{bot_latency}ms')
 
-@client.command()
+@client.command(name= 'init')
 async def init(ctx: commands.context.Context):
     await ctx.send(ctx.author.name)
 
@@ -56,8 +59,10 @@ async def check(ctx: commands.context.Context):
 ##############################################################################
 ####################### 실제 사용하는 명령어 ###################################
 
-@client.command()
-async def 출근(ctx: commands.context.Context):
+# 근무를 시작할 때 사용
+# 양식 : !출근
+@client.command(name= '출근')
+async def start_work(ctx: commands.context.Context):
     now = datetime.now()
     name = ctx.author.display_name
     if name not in chul:
@@ -67,8 +72,10 @@ async def 출근(ctx: commands.context.Context):
     else:
         await ctx.send(f'이미 출근했습니다. 출근시간 : {chul[name].start_hour}시 {chul[name].start_min}분')
 
-@client.command()
-async def 퇴근(ctx: commands.context.Context):
+# 근무가 끝났고 총 근무시간을 저장하기 위해 사용
+# 양식 : !퇴근
+@client.command(name= '퇴근')
+async def finish_work(ctx: commands.context.Context):
     now = datetime.now()
     name = ctx.author.display_name
     if name in chul:
@@ -79,8 +86,10 @@ async def 퇴근(ctx: commands.context.Context):
     else:
         await ctx.send('아직 출근하지 않았습니다.')
 
-@client.command()
-async def 수업시작(ctx: commands.context.Context):
+# 수업이 시작했을 때 사용
+# 양식 : !수업시작
+@client.command(name= '수업시작')
+async def class_started(ctx: commands.context.Context):
     now = datetime.now()
     name = ctx.author.display_name
     if name in chul:
@@ -92,8 +101,10 @@ async def 수업시작(ctx: commands.context.Context):
     else:
         await ctx.send('아직 출근하지 않았습니다.')
 
-@client.command()
-async def 수업끝(ctx: commands.context.Context):
+# 수업이 끝났을 때 사용
+# 양식 : !수업끝
+@client.command(name= '수업끝')
+async def class_finished(ctx: commands.context.Context):
     now = datetime.now()
     name = ctx.author.display_name
     if name in chul:
@@ -105,20 +116,26 @@ async def 수업끝(ctx: commands.context.Context):
     else:
         await ctx.send('아직 출근하지 않았습니다.')
 
-@client.command()
-async def 주간(ctx: commands.context.Context):
+# 본인의 주간 근무 시간을 확인하기 위해 사용
+# 양식 : !주간
+@client.command(name= '주간')
+async def my_weekly(ctx: commands.context.Context):
     name = ctx.author.display_name
     week_hour,week_min = custom_functions.weekly(name)
     await ctx.send(f'이번주 총 근무 시간은 {week_hour}시 {week_min}분 입니다.')
 
-@client.command()
-async def 월간(ctx: commands.context.Context):
+# 본인의 월간 근무 시간을 확인하기 위해 사용
+# 양식 : !월간
+@client.command(name= '월간')
+async def my_monthly(ctx: commands.context.Context):
     name = ctx.author.display_name
     monthly_hour, monthly_min = custom_functions.monthly(name)
     await ctx.send(f'이번달 총 근무 시간은 {monthly_hour}시 {monthly_min}분 입니다.')
 
-@client.command()
-async def 수정(ctx: commands.context.Context, *, message: str):
+# 사용자의 실수나 시스템상 오류로 발생한 에러를 해결하기 위해 사용하는 명령어
+# 양식 : !수정 시간 사유 ## 사유 작성시 띄어쓰기 해도 됨
+@client.command(name= '수정')
+async def update(ctx: commands.context.Context, *, message: str):
     hour = message.split()[0]
     note = message[len(hour)+1:]
     hour = int(hour)
@@ -148,11 +165,9 @@ async def 수정(ctx: commands.context.Context, *, message: str):
     # 사용한 데이터프레임 삭제
     del df
     del ddf
-    
-@client.command()
-async def button1(ctx):
-    await ctx.send(view=ButtonFunction())
 
+# 사용자가 퇴근 안했을 때 야근 여부를 확인 하기 위함
+# 양식 : !야근
 @client.command(name= '야근')
 async def night_shift(ctx: commands.context.Context):
     name = ctx.author.display_name
@@ -165,6 +180,8 @@ async def night_shift(ctx: commands.context.Context):
 ##############################################################################
 ######################## 관리자용 명령어 ######################################
 
+# 유저의 시간을 확인하기 위해 사용
+# 양식 : !확인 이름 주(월)간 주(월)차 ## 0(기본값) : 이번주(월) 1 : 전주(월) 2 : 전전주(월) ...
 @client.command(name= '확인')
 async def check_working_time(ctx: commands.context.Context,*,message: str) -> None:
     name = message.split()[0]
@@ -181,7 +198,23 @@ async def check_working_time(ctx: commands.context.Context,*,message: str) -> No
         elif MW == '월간':
             monthly_hour, monthly_min = custom_functions.monthly(name,when)
             await ctx.send(f'{name}의 총 근무 시간은 {monthly_hour}시 {monthly_min}분 입니다.')
-        
+    else:
+        await ctx.send('권한이 없습니다.')
+
+# 유저의 모든 데이터를 메일로 보내기
+# 양식 : !메일 이메일
+@client.command(name= '메일')
+async def send_email(ctx: commands.context.Context,*, message: str) -> None:
+    if custom_functions.role_check(ctx,'관리자'):
+        Gmail.send_email(message)
+        await ctx.send('메일 발송했습니다.')
+    else:
+        await ctx.send('권한이 없습니다.')
+
 ##############################################################################
+############################### 안쓰는 명령어 #################################
+@client.command()
+async def button1(ctx):
+    await ctx.send(view=ButtonFunction())
 
 client.run(TOKEN)
