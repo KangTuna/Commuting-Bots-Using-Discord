@@ -32,3 +32,5 @@ def send_email(mail: str) -> None:
 
     smtp.sendmail(my_id,mail,msg.as_string())
     smtp.quit()
+
+    # 뭔가 수정했어요
