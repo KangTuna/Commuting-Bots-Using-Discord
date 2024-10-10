@@ -65,15 +65,19 @@ async def check(ctx: commands.context.Context):
 async def start_work(ctx: commands.context.Context):
     now = datetime.now()
     name = ctx.author.display_name
-    if name not in chul:
-        chul[name] = PersonData(ctx.author)
-        chul[name].start(now)
-        await ctx.send(f'현재시간 : {now.hour}시 {now.minute}분 {name} 출근')
+    if now.hour >= 8 and now.hour < 18:
+        if name not in chul:
+            chul[name] = PersonData(ctx.author)
+            chul[name].start(now)
+            await ctx.send(f'현재시간 : {now.hour}시 {now.minute}분 {name} 출근')
+        else:
+            await ctx.send(f'이미 출근했습니다. 출근시간 : {chul[name].start_hour}시 {chul[name].start_min}분')
     else:
-        await ctx.send(f'이미 출근했습니다. 출근시간 : {chul[name].start_hour}시 {chul[name].start_min}분')
+        await ctx.send('출근 시간이 아닙니다.')
 
 # 근무가 끝났고 총 근무시간을 저장하기 위해 사용
 # 양식 : !퇴근
+#TODO: 자정 넘겨서 퇴근했을 때 근무시간 음수로 되는거 수정해야함
 @client.command(name= '퇴근')
 async def finish_work(ctx: commands.context.Context):
     now = datetime.now()
@@ -169,7 +173,8 @@ async def update(ctx: commands.context.Context, *, message: str):
 # 사용자가 퇴근 안했을 때 야근 여부를 확인 하기 위함
 # 양식 : !야근
 @client.command(name= '야근')
-async def night_shift(ctx: commands.context.Context):
+async def night_shift(ctx: commands.context.Context, *, message: str):
+    note = message
     name = ctx.author.display_name
     if name in chul:
         chul[name].night_shift_mode()
