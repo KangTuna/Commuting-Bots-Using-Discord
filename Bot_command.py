@@ -12,7 +12,7 @@ import pandas as pd
 import asyncio
 
 # 실제사용할땐 TestBot_TOKEN.txt -> RealBot_TOKEN.txt로 바꿔야됨
-with open('./TOKEN/TestBot_TOKEN.txt','r') as f:
+with open('./TOKEN/RealBot_TOKEN.txt','r') as f:
     TOKEN = f.readline()
 
 client = commands.Bot(command_prefix="!", intents= discord.Intents.all())
